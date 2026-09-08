@@ -13,7 +13,7 @@ const SITE='00000000-0000-0000-0000-000000000001';
 const roles={manager:'Yönetici',owner:'Ev Sahibi',tenant:'Kiracı',resident:'Atama Bekliyor'};
 const statusNames={paid:'Ödendi',unpaid:'Ödenmedi',pending:'Bekliyor'};
 const money=n=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:0}).format(+n||0);
-const esc=(s='')=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
+const esc=(s='')=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 function toast(t,type='success',ms=4200){const e=$('#toast');e.textContent=t;e.style.background=type==='error'?'#8f2d2d':'';e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),ms)}
 function badge(s){return `<span class="badge ${s==='paid'?'paid':s==='unpaid'?'unpaid':'pending'}">${statusNames[s]||s}</span>`}
 function unit(id){return data.units.find(x=>x.id==id)?.label||'Daire atanmamış'}
