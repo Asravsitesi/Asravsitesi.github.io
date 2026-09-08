@@ -1,5 +1,11 @@
 const SUPABASE_URL='https://lgbslyeqxtpawamhwqnl.supabase.co';
 const SUPABASE_KEY='sb_publishable_K_aAP-xjL2lv00fo9oCcjQ_lgjbXUyi';
+const AUTH_REDIRECT='https://asravsitesi.github.io/';
+const authSearch=new URLSearchParams(location.search),authHash=new URLSearchParams(location.hash.slice(1));
+const authError=authSearch.get('error_description')||authHash.get('error_description')||authSearch.get('error')||authHash.get('error');
+const authErrorCode=authSearch.get('error_code')||authHash.get('error_code');
+const authType=authSearch.get('type')||authHash.get('type');
+const authCallbackSuccess=!authError&&(authType==='signup'||authSearch.has('code')||authHash.has('access_token'));
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let signup=false,page='dashboard',session=null,profile=null,data={units:[],profiles:[],dues:[],budgets:[],announcements:[],documents:[]},channel;
@@ -7,15 +13,15 @@ const SITE='00000000-0000-0000-0000-000000000001';
 const roles={manager:'Yönetici',owner:'Ev Sahibi',tenant:'Kiracı',resident:'Atama Bekliyor'};
 const statusNames={paid:'Ödendi',unpaid:'Ödenmedi',pending:'Bekliyor'};
 const money=n=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:0}).format(+n||0);
-const esc=(s='')=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-function toast(t){const e=$('#toast');e.textContent=t;e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),2800)}
+const esc=(s='')=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
+function toast(t,type='success',ms=4200){const e=$('#toast');e.textContent=t;e.style.background=type==='error'?'#8f2d2d':'';e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),ms)}
 function badge(s){return `<span class="badge ${s==='paid'?'paid':s==='unpaid'?'unpaid':'pending'}">${statusNames[s]||s}</span>`}
 function unit(id){return data.units.find(x=>x.id==id)?.label||'Daire atanmamış'}
 function occupant(id){return data.profiles.find(x=>x.unit_id==id)||{full_name:'Atama bekleniyor',email:'',phone:''}}
 function isManager(){return profile?.role==='manager'}
 function setAuthMode(v){signup=v;$('#nameField').classList.toggle('hidden',!v);$('#loginTitle').textContent=v?'Yeni hesap oluşturun':'Hesabınıza giriş yapın';$('#loginSub').textContent=v?'Bilgilerinizi girin; yönetici dairenizi atayacaktır.':'Asrav Sitesi ortak yönetim sistemine devam edin.';$('#authSubmit').textContent=v?'Hesap oluştur':'Giriş yap';$('#authToggle').textContent=v?'Zaten hesabım var':'Yeni hesap oluştur';$('#loginPass').autocomplete=v?'new-password':'current-password'}
 $('#authToggle').onclick=()=>setAuthMode(!signup);
-$('#loginForm').onsubmit=async e=>{e.preventDefault();const email=$('#loginEmail').value.trim(),password=$('#loginPass').value,name=$('#loginName').value.trim();$('#authSubmit').disabled=true;let error;if(signup){({error}=await db.auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:location.origin+location.pathname}}));if(!error){toast('Hesap oluşturuldu. E-postanızı doğrulayın.');setAuthMode(false)}}else({error}=await db.auth.signInWithPassword({email,password}));$('#authSubmit').disabled=false;if(error)toast(error.message)};
+$('#loginForm').onsubmit=async e=>{e.preventDefault();const email=$('#loginEmail').value.trim(),password=$('#loginPass').value,name=$('#loginName').value.trim();$('#authSubmit').disabled=true;let error;if(signup){({error}=await db.auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:AUTH_REDIRECT}}));if(!error){toast('Hesap oluşturuldu. E-postanızı doğrulayın.');setAuthMode(false)}}else({error}=await db.auth.signInWithPassword({email,password}));$('#authSubmit').disabled=false;if(error)toast(error.message)};
 $('#logout').onclick=()=>db.auth.signOut();$('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');
 $('#nav').onclick=e=>{const b=e.target.closest('[data-page]');if(!b)return;page=b.dataset.page;$$('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page));$('#sidebar').classList.remove('open');render()};
 async function boot(s){session=s;if(!s){$('#login').classList.remove('hidden');$('#app').classList.add('hidden');return}$('#login').classList.add('hidden');$('#app').classList.remove('hidden');await loadAll();subscribe()}
