@@ -1,1 +1,1 @@
-(()=>{if(window.__asravFixes2540)return;window.__asravFixes2540=true;const files=['app50.js?v=2540','app51.js?v=2540','app52.js?v=2540'];const load=i=>{if(i>=files.length)return;const s=document.createElement('script');s.src=files[i]+'&t='+Date.now();s.onload=()=>load(i+1);document.body.appendChild(s)};load(0)})();
+(()=>{})();
