@@ -20,5 +20,5 @@ const originalToast=toast;toast=function(text,type='success',ms=4200){const clea
 const originalAlert=window.alert;window.alert=function(text){return originalAlert(friendlyError(text))};
 for(const name of ['toLocaleString','toLocaleDateString','toLocaleTimeString']){const original=Date.prototype[name];Date.prototype[name]=function(locales,options){const opts={...(options||{})};if(!opts.timeZone)opts.timeZone=ZONE;return original.call(this,locales||'tr-TR',opts)}}
 window.asravTurkeyTime=value=>new Date(value).toLocaleString('tr-TR',{timeZone:ZONE});
-new MutationObserver(()=>{const tag=[...document.querySelectorAll('#healthContent+.tag,.toolbar .tag')].find(x=>/^Build\s/i.test(x.textContent||''));if(tag&&tag.textContent!=='Build 2589')tag.textContent='Build 2589'}).observe(document.body,{childList:true,subtree:true});
+new MutationObserver(()=>{const tag=[...document.querySelectorAll('#healthContent+.tag,.toolbar .tag')].find(x=>/^Build\s/i.test(x.textContent||''));if(tag&&tag.textContent!=='Build 2590')tag.textContent='Build 2590'}).observe(document.body,{childList:true,subtree:true});
 })();
