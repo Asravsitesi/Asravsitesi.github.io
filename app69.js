@@ -1,0 +1,35 @@
+(()=>{
+  let cleaning=false,timer;
+  function restoreDuesTable(){
+    if(page!=='dues'||cleaning)return;
+    const table=$('#rows');if(!table)return;
+    cleaning=true;
+    try{
+      table.querySelectorAll('.payment-date-header,.payment-date-cell,.payment-date-inline,.payment-date-compact,.current-payment-date').forEach(x=>x.remove());
+      table.querySelectorAll('.missing-due-row td[data-payment-date-span]').forEach(x=>{
+        x.colSpan=Math.max(1,Number(x.colSpan||6)-1);
+        delete x.dataset.paymentDateSpan;
+      });
+      table.querySelectorAll('td').forEach(x=>{
+        x.style.removeProperty('height');
+        x.style.removeProperty('min-height');
+      });
+    }finally{cleaning=false}
+  }
+  function schedule(){
+    if(page!=='dues')return;
+    restoreDuesTable();
+    clearTimeout(timer);
+    timer=setTimeout(restoreDuesTable,80);
+  }
+  const previousRender=render;
+  render=function(){const result=previousRender();schedule();return result};
+  new MutationObserver(()=>{
+    if(page!=='dues'||cleaning)return;
+    if($('#rows .payment-date-header,#rows .payment-date-cell,#rows .payment-date-inline,#rows .payment-date-compact,#rows .current-payment-date'))schedule();
+  }).observe($('#content'),{childList:true,subtree:true});
+  const style=document.createElement('style');
+  style.textContent='.payment-date-header,.payment-date-cell,.payment-date-inline,.payment-date-compact,.current-payment-date{display:none!important}#rows td{height:auto!important;min-height:0!important}';
+  document.head.appendChild(style);
+  schedule();
+})();
