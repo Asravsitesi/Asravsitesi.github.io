@@ -58,7 +58,7 @@
       const box=row.querySelector('.resident-row-buttons');if(!box)return;
       let button=box.querySelector('[data-role-admin]')||box.querySelector('[data-edit-profile-from-residents]');
       if(!button){button=document.createElement('button');button.type='button';button.className='resident-table-btn';box.prepend(button)}
-      button.removeAttribute('data-role-admin');button.dataset.editProfileFromResidents=p.id;button.textContent='✎ Kullanıcıyı düzenle';button.onclick=()=>openProfileEditor(p.id);
+      button.removeAttribute('data-role-admin');button.dataset.editProfileFromResidents=p.id;if(button.textContent!=='✎ Kullanıcıyı düzenle')button.textContent='✎ Kullanıcıyı düzenle';button.onclick=()=>openProfileEditor(p.id);
     });
   }
 
