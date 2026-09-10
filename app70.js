@@ -34,8 +34,7 @@
   }
 
   function openHistory(){
-    const rows=historyRows();
-    let body='';
+    const rows=historyRows();let body='';
     for(const d of rows){
       body+='<tr><td><b>'+esc(unit(d.unit_id))+'</b><br><small>'+esc(occupant(d.unit_id).full_name||'—')+'</small></td>'+
         '<td>'+esc(String(d.period||'').slice(0,7))+'</td>'+
@@ -52,12 +51,12 @@
     $('#closePaymentHistory').onclick=()=>{$('#modalRoot').innerHTML='';};
   }
 
-  async function deliver(blob,name,title){
+  function offerFile(blob,name,title){
     const file=new File([blob],name,{type:blob.type});
-    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-      try{await navigator.share({files:[file],title:title});return;}catch(e){if(e.name==='AbortError')return;}
-    }
-    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);toast(name+' indirildi.');
+    $('#modalRoot').innerHTML='<div class="modal-backdrop"><div class="modal file-delivery-modal"><div class="modal-head"><div><h3>'+esc(title)+'</h3><small>'+esc(name)+'</small></div></div><div class="modal-body"><p>Dosyayı cihazınıza kaydedebilir veya desteklenen uygulamalarla paylaşabilirsiniz.</p></div><div class="modal-foot file-delivery-actions"><button class="ghost" id="cancelFileDelivery">Kapat</button><button class="ghost" id="shareGeneratedFile">Paylaş</button><button class="primary" id="saveGeneratedFile">Kaydet</button></div></div></div>';
+    $('#cancelFileDelivery').onclick=()=>{$('#modalRoot').innerHTML='';};
+    $('#saveGeneratedFile').onclick=()=>{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);toast(name+' kaydedildi.');};
+    $('#shareGeneratedFile').onclick=async()=>{if(!navigator.share||!navigator.canShare||!navigator.canShare({files:[file]}))return toast('Bu cihaz dosya paylaşımını desteklemiyor. Kaydet seçeneğini kullanabilirsiniz.','error');try{await navigator.share({files:[file],title:title});}catch(e){if(e.name!=='AbortError')toast('Dosya paylaşılamadı.','error');}};
   }
 
   async function exportExcel(){
@@ -66,7 +65,7 @@
     ws['!cols']=[{wch:12},{wch:24},{wch:11},{wch:13},{wch:12},{wch:13},{wch:22},{wch:14},{wch:19},{wch:25},{wch:22},{wch:20},{wch:19},{wch:14}];
     XLSX.utils.book_append_sheet(wb,ws,'Aidatlar ve Ödemeler');
     const bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'});
-    await deliver(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'Asrav_Sitesi_Aidatlar_Odemeler_'+new Date().toISOString().slice(0,10)+'.xlsx','Asrav Sitesi Aidat ve Ödemeleri');
+    offerFile(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'Asrav_Sitesi_Aidatlar_Odemeler_'+new Date().toISOString().slice(0,10)+'.xlsx','Asrav Sitesi Aidat ve Ödemeleri');
   }
 
   async function exportPdf(){
@@ -76,7 +75,7 @@
     doc.setFontSize(15);doc.text('Asrav Sitesi - Aidat ve Odeme Listesi',14,13);
     doc.setFontSize(8);doc.text('Olusturma: '+new Date().toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}),14,18);
     doc.autoTable({startY:22,head:[['Villa','Sakin','Donem','Son Odeme','Aidat','Aidat Durumu','Aidat Odeme Tarihi','Gecmis Borc','Gecmis Borc Durumu','Gecmis Borc Odeme Tarihi','Gecmis Borca Odenen','Kalan Gecmis Borc','Toplam Kalan','Durum']],body:rows.map(r=>[r.Villa,r.Sakin,r['Dönem'],r['Son Ödeme'],money(r.Aidat),r['Aidat Ödendi'],r['Aidat Ödeme Tarihi']||'—',money(r['Geçmiş Borç']),r['Geçmiş Borç Ödendi'],r['Geçmiş Borç Ödeme Tarihi']||'—',money(r['Geçmiş Borca Ödenen']),money(r['Kalan Geçmiş Borç']),money(r['Toplam Kalan Borç']),r.Durum]),styles:{fontSize:6,cellPadding:1.5,overflow:'linebreak'},headStyles:{fillColor:[35,91,95]}});
-    await deliver(doc.output('blob'),'Asrav_Sitesi_Aidatlar_Odemeler_'+new Date().toISOString().slice(0,10)+'.pdf','Asrav Sitesi Aidat ve Ödemeleri');
+    offerFile(doc.output('blob'),'Asrav_Sitesi_Aidatlar_Odemeler_'+new Date().toISOString().slice(0,10)+'.pdf','Asrav Sitesi Aidat ve Ödemeleri');
   }
 
   function mount(){
@@ -84,15 +83,11 @@
     const actions=$('.dues-io-actions');
     if(actions&&!$('#openPaymentHistory'))actions.insertAdjacentHTML('afterbegin','<button class="ghost" id="openPaymentHistory">Ödeme Geçmişi</button>');
     const history=$('#openPaymentHistory'),excel=$('#exportDuesExcel'),pdf=$('#exportDuesPdf');
-    if(history)history.onclick=openHistory;
-    if(excel)excel.onclick=exportExcel;
-    if(pdf)pdf.onclick=exportPdf;
+    if(history)history.onclick=openHistory;if(excel)excel.onclick=exportExcel;if(pdf)pdf.onclick=exportPdf;
   }
 
   const style=document.createElement('style');
-  style.textContent='.payment-history-modal table{min-width:850px}.payment-history-modal .modal-body{padding-top:8px}.history-paid{display:inline-flex;padding:3px 7px;border-radius:7px;background:#e5f5ee;color:#197253;font-size:11px;font-weight:800}@media(max-width:760px){.payment-history-modal{width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important}.payment-history-modal .modal-body{overflow:auto!important}#openPaymentHistory{grid-column:1/3}}';
+  style.textContent='.payment-history-modal table{min-width:850px}.payment-history-modal .modal-body{padding-top:8px}.history-paid{display:inline-flex;padding:3px 7px;border-radius:7px;background:#e5f5ee;color:#197253;font-size:11px;font-weight:800}.file-delivery-modal{max-width:520px!important}.file-delivery-modal .modal-body p{margin:0;color:#365860;line-height:1.6}.file-delivery-actions{display:grid!important;grid-template-columns:1fr 1fr 1fr!important;gap:8px!important}.permission-item small{display:none!important}.permission-list{gap:6px!important}.permission-item{min-height:0!important;padding:8px 10px!important}.permission-item span{gap:0!important}.permission-item b{font-size:12px!important;line-height:1.25!important}.permission-card .panel-head{padding:12px!important}.permission-card .panel-head>div>small{display:none!important}@media(max-width:760px){.payment-history-modal{width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important}.payment-history-modal .modal-body{overflow:auto!important}#openPaymentHistory{grid-column:1/3}.file-delivery-actions{grid-template-columns:1fr!important}}';
   document.head.appendChild(style);
-  const previousRender=render;
-  render=function(){const result=previousRender();mount();return result;};
-  mount();
+  const previousRender=render;render=function(){const result=previousRender();mount();return result;};mount();
 })();
