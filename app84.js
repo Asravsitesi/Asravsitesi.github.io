@@ -24,7 +24,9 @@
     const text=input.value.trim();if(!text)return;input.value='';
     const userNode=add(text,'user'),waiting=add((provider==='auto'?'Yapay zekâ':labels[provider])+' yanıtı hazırlanıyor…','bot');button.disabled=true;
     try{
-      const result=await db.functions.invoke('asrav-ai-assistant',{body:{message:text,history:history.slice(-6),provider}}),d=result.data;
+      const functionName=provider==='notion'?'asrav-notion-agent':'asrav-ai-assistant';
+      const requestBody=provider==='notion'?{message:text}:{message:text,history:history.slice(-6),provider};
+      const result=await db.functions.invoke(functionName,{body:requestBody}),d=result.data;
       if(d?.test&&d.success===false){waiting.className='asrav-chat-message error';waiting.textContent=labels[d.provider||provider]+' başarısız: '+(d.diagnostic||d.error||'yanıt alınamadı');return}
       if(!result.error&&d?.answer){waiting.textContent=d.answer;const badge=document.createElement('small');badge.className='asrav-ai-provider';badge.textContent='Yanıt: '+labels[d.provider||provider];waiting.appendChild(badge);history.push({role:'user',content:text},{role:'assistant',content:d.answer});return}
     }catch(e){console.warn('AI sağlayıcısı kullanılamadı.')}
