@@ -3,7 +3,7 @@
   const input=host.querySelector('#asravChatInput'),button=host.querySelector('#asravChatSend'),messages=host.querySelector('.asrav-chat-messages'),localSend=button?.onclick;
   if(!input||!button||!messages||!localSend)return;
   const history=[];let provider='auto';let testerReady=false;
-  const labels={auto:'Otomatik',groq:'Groq',openrouter:'OpenRouter'};
+  const labels={auto:'Otomatik',notion:'Notion Agent',groq:'Groq',openrouter:'OpenRouter'};
   const add=(text,type)=>{const e=document.createElement('div');e.className='asrav-chat-message '+type;e.textContent=text;messages.appendChild(e);messages.scrollTop=messages.scrollHeight;return e};
   async function enableTester(){
     try{
@@ -14,7 +14,7 @@
       const roles=Array.isArray(p?.roles)?p.roles:[];
       if(p?.role!=='admin'&&!roles.includes('admin'))return;
       const bar=document.createElement('div');bar.className='asrav-ai-testbar';
-      bar.innerHTML='<label>Model testi</label><select aria-label="Test edilecek yapay zekâ modeli"><option value="auto">Otomatik geçiş</option><option value="groq">Groq (ana)</option><option value="openrouter">OpenRouter (yedek)</option></select><span>Yönetici</span>';
+      bar.innerHTML='<label>Model testi</label><select aria-label="Test edilecek yapay zekâ modeli"><option value="auto">Otomatik geçiş</option><option value="notion">Notion Agent (test)</option><option value="groq">Groq (ana)</option><option value="openrouter">OpenRouter (yedek)</option></select><span>Yönetici</span>';
       host.querySelector('.asrav-chat-suggestions')?.before(bar);
       bar.querySelector('select').onchange=e=>{provider=e.target.value;add(labels[provider]+' test modu seçildi.','system')};
       testerReady=true;
